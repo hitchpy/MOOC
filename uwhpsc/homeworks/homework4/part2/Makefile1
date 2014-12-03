@@ -1,0 +1,35 @@
+
+OBJECTS = random_util.o gamblers.o main1.o
+#FFLAGS = -g -Wall -fbounds-check -ffpe-trap=zero,overflow,underflow,invalid 
+
+.PHONY: data test1 clean 
+
+# default values for input_data.txt:
+
+n1 = 4
+n2 = 4
+p = 0.6
+max_steps = 10000
+seed = 1111
+
+data:
+	@echo $(n1) > input_data.txt
+	@echo $(n2) >> input_data.txt
+	@echo $(p) >> input_data.txt
+	@echo $(max_steps) >> input_data.txt
+	@echo $(seed) >> input_data.txt
+	@echo Wrote data to input_data.txt
+
+
+test1: test1.exe data
+	./test1.exe
+
+test1.exe: $(OBJECTS)
+	gfortran $(FFLAGS) $(OBJECTS) -o test1.exe
+
+%.o : %.f90
+	gfortran $(FFLAGS) -c  $< 
+
+clean:
+	rm -f *.o *.exe *.mod
+

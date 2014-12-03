@@ -1,0 +1,28 @@
+
+OBJECTS = problem.o bvp_solvers.o main1.o
+LFLAGS = -lblas -llapack
+
+
+.PHONY: data test clean 
+
+# default values for input_data.txt:
+
+n = 20
+
+data:
+	@echo $(n) > input_data.txt
+	@echo Wrote data to input_data.txt
+
+
+test: test.exe data
+	./test.exe
+
+test.exe: $(OBJECTS)
+	gfortran $(OBJECTS) $(LFLAGS) -o test.exe
+
+%.o : %.f90
+	gfortran $(FFLAGS) -c  $< 
+
+clean:
+	rm -f *.o *.exe *.mod
+

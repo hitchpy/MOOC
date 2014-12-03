@@ -1,0 +1,39 @@
+
+OBJECTS = random_util.o gamblers.o main2.o
+FFLAGS = -O2 -fopenmp
+
+.PHONY: data test2 clean 
+
+# default values for input_data.txt:
+
+n1 = 4
+n2 = 4
+p = 0.6
+max_steps = 10000
+seed = 1111
+kwalks = 500
+nthreads = 2
+
+data:
+	@echo $(n1) > input_data.txt
+	@echo $(n2) >> input_data.txt
+	@echo $(p) >> input_data.txt
+	@echo $(max_steps) >> input_data.txt
+	@echo $(seed) >> input_data.txt
+	@echo $(kwalks) >> input_data.txt
+	@echo $(nthreads) >> input_data.txt
+	@echo Wrote data to input_data.txt
+
+
+test2: test2.exe data
+	./test2.exe
+
+test2.exe: $(OBJECTS)
+	gfortran $(FFLAGS) $(OBJECTS) -o test2.exe
+
+%.o : %.f90
+	gfortran $(FFLAGS) -c  $< 
+
+clean:
+	rm -f *.o *.exe *.mod
+
