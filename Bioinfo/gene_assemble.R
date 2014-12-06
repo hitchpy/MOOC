@@ -28,8 +28,23 @@ genome_path = function(strs)
   paste(res, collapse = '')
 }
 
-dat = c('ACCGA',
-        'CCGAA',
-        'CGAAG',
-        'GAAGC',
-        'AAGCT')
+
+####  Overlap graph, given a collation of k mers, return overlap graph as adjacency list
+overlap = function(patterns)
+{
+  res = NULL
+  patterns = sort(patterns)
+  k = nchar(patterns[1]) # k mers' K
+  prefix = substr(patterns,1, k-1) # Suffix and prefix for matching 
+  suffix = substr(patterns, 2, k)
+  len = length(patterns) 
+  for(i in 1: len)
+  {
+    if(suffix[i] %in% prefix)
+    {
+      idx = which(suffix[i] == prefix)
+      res = c(res, paste(patterns[i], '->', patterns[idx]))
+    }
+  }
+  res
+}
