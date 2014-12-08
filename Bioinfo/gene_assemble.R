@@ -48,3 +48,40 @@ overlap = function(patterns)
   }
   res
 }
+
+## DeBruijn Graph, the k mers are the edges and k-1 mers are the nodes
+## Output the graph in adjacency list format
+DeBruijn = function(k, dat)
+{
+  # Base on the definition, first construct All unique k-1 mers, then
+  # Based on all the edges, add number to the corresponding adjacency matrix.
+  edges = string_composition(k, dat)
+  nodes = sort(unique(as.vector(sapply(edges, function(ss){c(substr(ss, 1, k-1), substr(ss, 2, k))})))) # Create k-1 mers
+  len = length(edges) # For loop over and adding edges
+  res = matrix(0, nrow = length(nodes), ncol = length(nodes)) # Adjacent matrix
+  rownames(res) = colnames(res) = nodes
+  for(i in 1:len)  # Fill in the counts
+  {
+    pre = substr(edges[i], 1, k -1)
+    suf = substr(edges[i], 2, k)
+    res[pre, suf] = res[pre, suf] + 1
+  }
+  fil = apply(res, 1, sum)
+  res = res[fil >0, ]
+  ## Based on the adjacency matrix, output result
+  len = nrow(res)
+  temp = rownames(res)
+  sapply(1:len, function(i)paste(temp[i], '->', paste(rep(nodes, times = res[i, ]), collapse = ',')))
+}
+
+
+
+
+
+
+
+
+
+
+
+
