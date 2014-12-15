@@ -108,26 +108,16 @@ DeBruijn_patterns = function(patterns)
 ## Eulerian algorithm for finding the eulerian cycle in a Eulerian directed graph.
 ## Input elist: a E directed graph as adjacency list
 ## Output the path that traverse the graph using all the edges exactly once.
-dat = c(
-'0 -> 3',
-'1 -> 0',
-'2 -> 1,6',
-'3 -> 2',
-'4 -> 2',
-'5 -> 4',
-'6 -> 5,8',
-'7 -> 9',
-'8 -> 7',
-'9 -> 6')
+
 EulerianCycle = function(elist)
 {
   ## Convert input to list format, with node name as list name, outlink as elements
   temp = strsplit(elist, split = ' -> ')
   len = length(temp)
-  xx = lapply(1:len, function(i)as.numeric(strsplit(temp[[i]][2], split = ',')[[1]]))
+  xx = lapply(1:len, function(i)strsplit(temp[[i]][2], split = ',')[[1]])
   names(xx) = sapply(1:len, function(i)temp[[i]][1])
   ## Construct Eulerian cycle
-  res = as.numeric(names(xx)[1]) # for storing the output nodes' order. Init to first node
+  res = names(xx)[1] # for storing the output nodes' order. Init to first node
   while(length(xx) >0 )
   {
     ll = length(res)
@@ -146,7 +136,83 @@ EulerianCycle = function(elist)
     }
   }
   paste(res, collapse = '->') # output the path
+  #res
 }
+
+## Similar to the above algorithm but need preprocess to add an edge 
+## To get a balanced graph, find the cycle, then break into path.
+### Change the as.numeric for the next function's use.
+EulerianPath = function(elist)
+{
+  # Find the two inbalanced nodes.
+  temp = strsplit(elist, split = ' -> ')
+  len = length(temp)
+  xx = lapply(1:len, function(i)strsplit(temp[[i]][2], split = ',')[[1]])
+  names(xx) = sapply(1:len, function(i)temp[[i]][1])
+  all_nodes = as.factor(unique(c(unlist(xx), names(xx))))
+  inlink = table(factor(unlist(xx), levels = all_nodes)) # Get all unique names and counts of inlink for each node
+  outlink = sapply(names(inlink), function(an)length(xx[[an]])) # Get outlink count
+  start = names(inlink)[outlink > inlink]
+  end = names(inlink)[inlink > outlink]
+  xx[[end]] = c(xx[[end]], start)
+  
+  res = names(xx)[1] # for storing the output nodes' order. Init to first node
+  while(length(xx) >0 )
+  {
+    ll = length(res)
+    cur_node = as.character(res[ll])
+    if(!cur_node %in% names(xx)) # Got stuck in a node with no outlink
+    {
+      # Rearrange the res, as if start from new node and re-traverse the previous edges.
+      position = which(as.character(res) %in% names(xx))[1] # It's guarantee there will be at least one.
+      res = c(res[c(position:(ll-1), 1:(position - 1))], res[position])
+    }else
+    {
+      next_node = xx[[cur_node]][1] # Take the first out node in the output link.
+      if(length(xx[[cur_node]]) == 1){xx[[cur_node]] = NULL}# Remove the node that use up all the outlinks
+      else{xx[[cur_node]] = xx[[cur_node]][-1]} # Else just use the first available outlink
+      res = c(res, next_node)
+    }
+  }
+  len = length(res)
+  pre = sapply(1:(len-1), 
+               function(i)res[i] == end &&res[i+1] == start)
+  idx = which(pre)
+  res = c(res[(idx+1):(len -1)], res[1:idx])
+  paste(res, collapse = '->')
+}
+
+### Given the k and a list of k mers, output the assembled genome with kmer 
+### composition equal to the given patterns
+GenomeAssemble = function(k, patterns)
+{
+  dgraph = DeBruijn_patterns(patterns)
+  epath = EulerianPath(dgraph)
+  genome_path(strsplit(epath, '->')[[1]])
+}
+
+# helper to generate all binary of k length, 2^k in total
+BinaryGen = function(k)
+{
+  if(k == 1){return(c('0', '1'))}# base case
+  c(paste0(BinaryGen(k-1), '0'), paste0(BinaryGen(k-1), '1'))
+  
+}
+
+### K universal circular sequence, all 0,1 with 2^k combination
+KUniversalCircular = function(k)
+{
+  bb = BinaryGen(k)
+  dbp = DeBruijn_patterns(bb)
+  epath = EulerianCycle(dbp)
+  xx = strsplit(epath, '->')[[1]]
+  len = length(xx)
+  res = genome_path(xx)
+  substr(res, 1, 2^k)
+}
+
+
+
 
 
 
