@@ -51,3 +51,59 @@ ManhattanTourist = function(n, m, Down, Right)
 
 
 ### More to come
+## Longest commom subsequence problem of two sequences, with implicit 
+## topological ordering, using backtrack matrix to output the common characters
+
+## Input: two strings v and w
+## Output: the backtrack matrix that contain the longest route from source to sink.
+
+LCSBacktrack = function(v, w)
+{
+  vlen = nchar(v)
+  wlen = nchar(w)
+  res = matrix(0, nrow = vlen+1, ncol = wlen+1)
+  backtrack = matrix(0, nrow = vlen, ncol = wlen) # return value
+  for(i in 1:(vlen +1)){res[i, 1] = 0}
+  for(i in 1:(wlen +1)){res[1, i] = 0}# initilize the first row and col
+  # fill in the remaining
+  for(i in 2:(vlen+1))
+  {
+    for(j in 2:(wlen+1))
+    {
+      temp = res[i-1, j-1]
+      if(substr(v,i-1, i-1) == substr(w, j-1, j-1))
+      {
+        temp = temp + 1 ## a match
+      }
+      res[i, j] = max(res[i-1, j] , res[i, j-1], temp)
+      ## based on res values, 
+      if(res[i,j] == res[i-1, j]){backtrack[i-1, j-1] = 1}
+      if(res[i,j] == res[i, j-1]){backtrack[i-1, j-1] = 2} 
+      
+       ## The sudo code is wrong in this part!(here is the correct version)
+      if(substr(v,i-1, i-1) == substr(w, j-1, j-1)){backtrack[i-1, j-1] = 3}
+    }
+  }
+  backtrack
+}
+
+OutputLCS = function(backtrack, v, i, j)
+{
+  if(i ==0 || j ==0){return()}
+  if(backtrack[i,j] == 1){OutputLCS(backtrack,v,i-1,j)}
+  else if(backtrack[i,j] == 2){OutputLCS(backtrack,v,i,j-1)}
+  else{OutputLCS(backtrack,v,i-1,j-1);cat(substr(v,i,i))}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
