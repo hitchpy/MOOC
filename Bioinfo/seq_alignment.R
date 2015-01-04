@@ -96,10 +96,93 @@ OutputLCS = function(backtrack, v, i, j)
 }
 
 
+## Helper function for LCS for arbitrary DAG
+## Ordering a DAG, given an adjacency list, the order is not unique
+## Input graph: a graph as adjacency list
+## Output: nodes names in topological order
 
+TopologicalOrdering = function(graph)
+{
+  res = NULL ## Initilize the return ordering
+  candidates = NULL 
+  for(nn in names(graph))
+  {
+    ## No inlink
+    if(all(!sapply(graph, '%in%', x = nn))){candidates = c(candidates, nn)}
+  }
+  while(length(candidates)>0)
+  {
+    cur = candidates[1]
+    res = c(res, candidates[1])
+    candidates = candidates[-1]
+    temp = graph[[cur]]
+    graph[[cur]] = NULL
+    for(xx in temp)
+    {
+      if(all(!sapply(graph, '%in%', x = xx))){candidates = c(candidates, xx)}
+    }
+  }
+  res
+}
 
+## Longest path in a DAG problem
+## Input: raw input from Stepic.org
+## s1: source node number, s2: sink node number
+## glist: the remaining input graph as linked list 
+## Output: The length of the longest path in number and the path as link nodes.
 
+Reachable = function(graph, root)
+{
+  if(is.null(graph[[root]])){return(root)}
+  temp = NULL
+  for(x in graph[[root]])
+  {
+    temp = c(temp, x, Reachable(graph, x))
+  }
+  temp
+}
 
+LPDAG = function(s1, s2, glist)
+{
+  temp = strsplit(glist, split = ':')
+  l1 = list() # Initilize two list, one for the edges
+  l2 = list() # one for the weight in each edge
+  for(i in 1:length(temp))
+  {
+    tmp = strsplit(temp[[i]], split = '->')[[1]]
+    l1[[tmp[1]]] = c(l1[[tmp[1]]], tmp[2])
+    tn = names(l2[[tmp[1]]])
+    l2[[tmp[1]]] = c(l2[[tmp[1]]], as.numeric(temp[[i]][2]))
+    names(l2[[tmp[1]]]) = c(tn, tmp[2])
+  }
+  reachable = c(s1, unique(Reachable(l1, s1)))
+  l1[!names(l1)%in% reachable] = NULL
+  l2[!names(l2)%in% reachable] = NULL
+  torder = TopologicalOrdering(l1) ## Guaranteed s1 is the first one?
+  res = rep(0, length(torder))
+  names(res) = torder
+  res2 = rep('', length(torder))
+  names(res2) = torder
+  for(i in 1:length(torder))
+  {
+    pre = which(sapply(l1, '%in%', x = names(res)[i]))
+    if(length(pre)>0)
+    {
+      pre = names(l1)[pre]
+      res[i] = max(res[pre] + sapply(pre, function(ii)l2[[ii]][names(res)[i]]))
+      res2[i] = pre[which.max(res[pre] + sapply(pre, function(ii)l2[[ii]][names(res)[i]]))]
+    }
+  }
+  output = s2
+  cur = s2
+  while(res2[cur] != s1)
+  {
+    output = paste0(res2[cur], '->', output)
+    cur = res2[cur]
+  }
+  output = paste0(s1, '->', output)
+  list(res[s2], output)
+}
 
 
 
