@@ -1,4 +1,4 @@
-MOOC Courses I have taken mainly from Coursera
+MOOC Courses I have taken mainly from Coursera, and Edx
 =========
 
 UW high performance scientific computing course material 
